@@ -10,6 +10,11 @@ class Node:
         self.esquerda:Node = None
         self.direita:Node = None
         self.__pai = pai
+        self.bf = 0
+
+    def __le__(self, other):
+        if isinstance(other, Node):
+            return self.data <= other.data
 
     def display_aux(self):
         """Returns list of strings, width, height, and horizontal coordinate of the root."""
@@ -60,20 +65,21 @@ class Node:
     def set_parent(self, parent) -> None:
         """definir Pai do nó"""
         self.__pai = parent
-    
+
 
     def get_parent(self) -> object:
         """Returna o Pai do nó"""
         return self.__pai
-    
+
+
     def has_left_child(self):
         return self.esquerda is not None
-    
+
+
     def has_right_child(self):
         return self.direita is not None
 
-    
-    
+
     def __str__(self) -> str:
         return self.data.__str__()
 
@@ -84,27 +90,90 @@ class ArvoreBinaria:
     def __init__(self):
         self.raiz = None
 
+    def __inserir_filho(self, root:Node, node): # TODO Agora só usar nos casos certos
+        if node <= root:
+            if not root.esquerda:
+                root.esquerda = node
+                root.esquerda.set_parent(root)
+            else:
+                self.__inserir_filho(root.esquerda, node)  # sub-árvore esquerda
+        else:
+            if not root.direita:  # não existe nó a direta (caso base)
+                root.direita = node
+                root.direita.set_parent(root)
+            else:
+                self.__inserir_filho(root.direita, node)  # sub-árvore direta
+
+        # Sistema de balanceamento 
+        # print(root)
+        root.bf = (self.getHeightL(root.esquerda) - self.getHeightR(root.direita))
+        
+        # print(f'{root} -> {root.bf}')
+        # if (root.data == 15):
+        #     print("é " + str(self.getHeightL(root.esquerda) - self.getHeightR(root.direita)) )
+        if root.bf > 1:
+            if root.esquerda.bf == 1:
+                self.girar_direita(root)
+            elif root.esquerda.bf == -1:
+                self.girar_esquerda_direita(root)
+
+        elif root.bf < -1:
+            if root.direita.bf == -1:
+                self.girar_esquerda(root)
+            elif root.direita.bf == 1:
+                self.girar_direita_esquerda(root)
+                
+            
+        # Update the balance factor and balance the tree
+        # balanceFactor = self.getBalance(root)
+
+        
+        # if balanceFactor > 1:
+        #     if node.data < root.esquerda.data:
+        #         self.girar_direita(root)
+        #     else:
+        #         self.girar_esquerda_direita(root)
+
+        # if balanceFactor < -1:
+        #     if node.data > root.direita.data:
+        #         self.girar_esquerda(root)
+        #     else:
+        #         self.girar_direita_esquerda(root)
+
+
+        # print(self)
+        
+        return node
+
 
     def inserir(self, node:Node):
         """Inseri num determinado lugar dependendo da data(Idenficador)"""
         if self.raiz is None:
             self.raiz = node
-            return
+        else:
+            self.__inserir_filho(self.raiz, node)
 
-        no = self.raiz
-        while True:
-            if node.data < no.data:
-                if no.esquerda is None:
-                    no.esquerda = node
-                    node.set_parent(no)
-                    break
-                no = no.esquerda
-            else:
-                if no.direita is None:
-                    no.direita = node
-                    node.set_parent(no)
-                    break
-                no = no.direita
+
+    def getBF(self, root):
+        return 
+
+    def getHeightL(self, root):
+        if not root:
+            return 0
+        return 1 + self.getHeightL(root.esquerda)
+
+
+    def getHeightR(self, root):
+        if not root:
+            return 0
+        return 1 + self.getHeightR(root.direita)
+
+
+    # # Get balance factore of the node
+    # def getBalance(self, root:Node): # TODO Ajeitar o sistema de pesos
+    #     if not root:
+    #         return 0
+    #     return self.getHeightL(root.esquerda) - self.getHeightR(root.direita)
 
 
     def encontrar(self, identificador) -> (bool, Node | None):
@@ -142,7 +211,6 @@ class ArvoreBinaria:
                 return n
         else:
             return None
-
 
 
     def delete(self, value): # Issue, as vezes retorna o próximo numero
@@ -195,6 +263,73 @@ class ArvoreBinaria:
         return representation
 
 
+    # -2
+    def girar_direita(self, node: Node):
+        """Realiza o movimento de girar uma subarvore para direita"""
+        y:Node = node.esquerda
+        node_root: Node = node.get_parent()
+        if node_root:
+            if node_root.direita == node:
+                node_root.direita = y
+            else:
+                node_root.esquerda = y
+        else:
+            self.raiz = y
+
+        y.set_parent(node_root)
+        node.set_parent(y)
+
+        node.esquerda = y.direita
+        if y.direita is not None:
+            node.esquerda.set_parent(node)
+        y.direita = node
+
+
+        node.height = (self.getHeightL(node.esquerda) - self.getHeightR(node.direita))
+        y.height = (self.getHeightL(y.esquerda) - self.getHeightR(y.direita))
+
+        return y
+
+
+    # +2
+    def girar_esquerda(self, node: Node):
+        """Realiza o movimento de girar uma subarvore para esquerda"""
+        y:Node = node.direita
+        node_root: Node = node.get_parent()
+        if node_root:
+            if node_root.esquerda == node:
+                node_root.esquerda = y
+            else:
+                node_root.direita = y
+        else:
+            self.raiz = y
+
+        y.set_parent(node_root)
+        node.set_parent(y)
+
+        node.direita = y.esquerda
+        if y.esquerda is not None:
+            node.direita.set_parent(node)
+        y.esquerda = node
+
+        node.height = (self.getHeightL(node.esquerda) - self.getHeightR(node.direita))
+        y.height = (self.getHeightL(y.esquerda) - self.getHeightR(y.direita))
+        return y
+
+
+    def girar_direita_esquerda(self, node:Node):
+        """Realiza o movimento para o -2 1 0"""
+
+        self.girar_direita(node.direita)
+        self.girar_esquerda(node)
+
+
+    def girar_esquerda_direita(self, node:Node):
+        """Realiza o movimento para o -2 -11 0"""
+        self.girar_esquerda(node.esquerda)
+        self.girar_direita(node)
+
+
     def __ler_a_esquerda(self, node:Node):
         if not node.esquerda:
             return
@@ -209,96 +344,35 @@ class ArvoreBinaria:
             self._ler_in_order(node.direita)
 
 
-class Usuario(Node):
-    """Usuários sadsadsadsadsa"""
-    def __init__(self, nome, cpf, endereco):
-        super().__init__(cpf)
-        self.nome = nome
-        self.cpf = cpf
-        self.endereco = endereco
-
-
-    def __str__(self):
-        return f"{self.nome} - {self.cpf}"
-
-
-class Livro(Node):
-    """livro"""
-    def __init__(self, titulo, autor, ano_publicacao, categoria, quantidade):
-        super().__init__(titulo)
-        self.titulo = titulo
-        self.autor = autor
-        self.ano_publicacao = ano_publicacao
-        self.categoria = categoria
-        self.quantidade = quantidade
-
-    def __str__(self):
-        return f"{self.titulo} - {self.autor} - {self.ano_publicacao}"
-
-
-class ArvoreLivros(ArvoreBinaria):
-    """Arvore de Usuários sadsadsadsadsa"""
-    def __init__(self):
-        super().__init__()
-        self.__tot_livros:int = None
-
-
-    def __len__(self) -> int:
-        if self.__tot_livros < 0:
-            return -1
-        return  self.__tot_livros
-
-
-
-class ArvoreUsuarios(ArvoreBinaria):
-    """Arvore de Usuários sadsadsadsadsa"""
-    def __init__(self):
-        super().__init__()
-        self.__tot_usuarios:int = None
-
-
-    def __len__(self) -> int:
-        if self.__tot_usuarios < 0:
-            return -1
-        return  self.__tot_usuarios
-
-
-
-
-usuarios: ArvoreBinaria = ArvoreUsuarios()
-livros: ArvoreBinaria = ArvoreLivros()
-emprestimos: list = []
-
-
-usuarios.inserir(Usuario("Carlos Douglas", 20202020, "De baixo da ponte"))
-usuarios.inserir(Usuario("joão", 200, "De baixo da ponte"))
-usuarios.inserir(Usuario("joão", 201, "De baixo da ponte"))
-
-print(usuarios)
-print("===================")
-
-livros.inserir(Livro("O Senhor dos Anéis", "J.R.R. Tolkien", "1954", ["fantasia", "aventura"], 10))
-print(livros)
-
-print("===================")
-print(usuarios)
-
 
 t = ArvoreBinaria()
-t.inserir(Node(15))
-t.inserir(Node(5))
-t.inserir(Node(3))
-t.inserir(Node(16))
-t.inserir(Node(12))
-t.inserir(Node(10))
-t.inserir(Node(6))
-t.inserir(Node(7))
-t.inserir(Node(13))
-t.inserir(Node(20))
-t.inserir(Node(23))
+# t.inserir(Node(15))
+# t.inserir(Node(5))
+# t.inserir(Node(3))
+
+# t.inserir(Node(16))
+# t.inserir(Node(12))
+# t.inserir(Node(10))
+
+
+
+
+# t.inserir(Node(6))
+# t.inserir(Node(7))
+
+
+
+
+# t.inserir(Node(13))
+# t.inserir(Node(20))
+# t.inserir(Node(23))
+
+# t.inserir(Node(65))
+# t.inserir(Node(14))
+
+for i in range(0, 40):
+    t.inserir(Node(i))
 
 print("===================")
-
-print(t)
-t.delete(12)
+# Quase mas cansei # TODO COlocar a formula de fazer a conta da altura certa
 print(t)
