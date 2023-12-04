@@ -1,5 +1,6 @@
 """Sistema de Biblioteca"""
-# representação em terminal por https://stackoverflow.com/questions/34012886/print-binary-tree-level-by-level-in-python
+# representação em terminal por
+#    https://stackoverflow.com/questions/34012886/print-binary-tree-level-by-level-in-python
 
 
 
@@ -90,7 +91,7 @@ class ArvoreBinaria:
     def __init__(self):
         self.raiz = None
 
-    def __inserir_filho(self, root:Node, node): # TODO Agora só usar nos casos certos
+    def __inserir_filho(self, root:Node, node):
         if node <= root:
             if not root.esquerda:
                 root.esquerda = node
@@ -104,10 +105,10 @@ class ArvoreBinaria:
             else:
                 self.__inserir_filho(root.direita, node)  # sub-árvore direta
 
-        # Sistema de balanceamento 
-        # print(root)
+        # Sistema de balanceamento
+        # print(self.bfaa(root))
         root.bf = (self.getHeightL(root.esquerda) - self.getHeightR(root.direita))
-        
+
         # print(f'{root} -> {root.bf}')
         # if (root.data == 15):
         #     print("é " + str(self.getHeightL(root.esquerda) - self.getHeightR(root.direita)) )
@@ -122,12 +123,12 @@ class ArvoreBinaria:
                 self.girar_esquerda(root)
             elif root.direita.bf == 1:
                 self.girar_direita_esquerda(root)
-                
-            
+
+
         # Update the balance factor and balance the tree
         # balanceFactor = self.getBalance(root)
 
-        
+
         # if balanceFactor > 1:
         #     if node.data < root.esquerda.data:
         #         self.girar_direita(root)
@@ -142,7 +143,7 @@ class ArvoreBinaria:
 
 
         # print(self)
-        
+
         return node
 
 
@@ -153,9 +154,11 @@ class ArvoreBinaria:
         else:
             self.__inserir_filho(self.raiz, node)
 
+    # def bfaa(self, root):
+    #     if 0 == (self.getHeightL(root.esquerda) - self.getHeightR(root.direita)):
+    #         return 0
+    #     return (self.getHeightL(root.esquerda) - self.getHeightR(root.direita))
 
-    def getBF(self, root):
-        return 
 
     def getHeightL(self, root):
         if not root:
@@ -164,13 +167,14 @@ class ArvoreBinaria:
 
 
     def getHeightR(self, root):
+        """retorna a altura """
         if not root:
             return 0
         return 1 + self.getHeightR(root.direita)
 
 
     # # Get balance factore of the node
-    # def getBalance(self, root:Node): # TODO Ajeitar o sistema de pesos
+    # def getBalance(self, root:Node):
     #     if not root:
     #         return 0
     #     return self.getHeightL(root.esquerda) - self.getHeightR(root.direita)
@@ -222,23 +226,40 @@ class ArvoreBinaria:
             else:
                 y = self.successor(z)
 
+
+            y_parent: Node | None = y.get_parent()
+
             if y.esquerda:
                 x = y.esquerda
             else:
                 x = y.direita
 
             if x:
-                x.set_parent(y.get_parent())
+                x.set_parent(y_parent)
 
-            if not y.get_parent():
+            if not y_parent:
                 self.raiz = x
-            elif y == y.get_parent().esquerda:
-                y.get_parent().esquerda = x
+            elif y == y_parent.esquerda:
+                y_parent.esquerda = x
             else:
-                y.get_parent().direita = x
+                y_parent.direita = x
 
             if y != z: # não entendi
                 z.data = y.data
+
+            y_parent.bf = (self.getHeightL(y_parent.esquerda) - self.getHeightR(y_parent.direita))
+
+            if y_parent.bf > 1:
+                if y_parent.esquerda.bf == 1:
+                    self.girar_direita(y_parent)
+                elif y_parent.esquerda.bf == -1:
+                    self.girar_esquerda_direita(y_parent)
+
+            elif y_parent.bf < -1:
+                if y_parent.direita.bf == -1:
+                    self.girar_esquerda(y_parent)
+                elif y_parent.direita.bf == 1:
+                    self.girar_direita_esquerda(y_parent)
 
             return y
 
@@ -346,33 +367,38 @@ class ArvoreBinaria:
 
 
 t = ArvoreBinaria()
-# t.inserir(Node(15))
-# t.inserir(Node(5))
-# t.inserir(Node(3))
-
-# t.inserir(Node(16))
-# t.inserir(Node(12))
-# t.inserir(Node(10))
 
 
 
 
-# t.inserir(Node(6))
-# t.inserir(Node(7))
+def test():
+    """Just a testo to not lose insanity more"""
+    t.inserir(Node(15))
+    t.inserir(Node(5))
+    t.inserir(Node(3))
+
+    t.inserir(Node(16))
+    t.inserir(Node(12))
+    t.inserir(Node(10))
+    t.delete(16)
+    # t.delete(12)
 
 
 
+    t.inserir(Node(6)) # parece que quando esse ta aqui não faz nada
+    # t.inserir(Node(7))
 
-# t.inserir(Node(13))
-# t.inserir(Node(20))
+    # t.inserir(Node(13))
+    t.inserir(Node(20)) # mas se for esse ele faz o balanceamento certo
+
 # t.inserir(Node(23))
 
 # t.inserir(Node(65))
 # t.inserir(Node(14))
 
-for i in range(0, 40):
+for i in range(0, 60):
     t.inserir(Node(i))
 
+# test()
 print("===================")
-# Quase mas cansei # TODO COlocar a formula de fazer a conta da altura certa
 print(t)
