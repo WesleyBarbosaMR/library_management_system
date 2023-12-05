@@ -74,10 +74,12 @@ class Node:
 
 
     def has_left_child(self):
+        """Retorna o nó esquerdo caso exista"""
         return self.esquerda is not None
 
 
     def has_right_child(self):
+        """Retorna o nó direito caso exista"""
         return self.direita is not None
 
 
@@ -106,12 +108,8 @@ class ArvoreBinaria:
                 self.__inserir_filho(root.direita, node)  # sub-árvore direta
 
         # Sistema de balanceamento
-        # print(self.bfaa(root))
-        root.bf = (self.getHeightL(root.esquerda) - self.getHeightR(root.direita))
+        root.bf = self.get_bf(root)
 
-        # print(f'{root} -> {root.bf}')
-        # if (root.data == 15):
-        #     print("é " + str(self.getHeightL(root.esquerda) - self.getHeightR(root.direita)) )
         if root.bf > 1:
             if root.esquerda.bf == 1:
                 self.girar_direita(root)
@@ -124,26 +122,6 @@ class ArvoreBinaria:
             elif root.direita.bf == 1:
                 self.girar_direita_esquerda(root)
 
-
-        # Update the balance factor and balance the tree
-        # balanceFactor = self.getBalance(root)
-
-
-        # if balanceFactor > 1:
-        #     if node.data < root.esquerda.data:
-        #         self.girar_direita(root)
-        #     else:
-        #         self.girar_esquerda_direita(root)
-
-        # if balanceFactor < -1:
-        #     if node.data > root.direita.data:
-        #         self.girar_esquerda(root)
-        #     else:
-        #         self.girar_direita_esquerda(root)
-
-
-        # print(self)
-
         return node
 
 
@@ -154,30 +132,16 @@ class ArvoreBinaria:
         else:
             self.__inserir_filho(self.raiz, node)
 
-    # def bfaa(self, root):
-    #     if 0 == (self.getHeightL(root.esquerda) - self.getHeightR(root.direita)):
-    #         return 0
-    #     return (self.getHeightL(root.esquerda) - self.getHeightR(root.direita))
+    def get_bf(self, node: Node):
+        """Retorna o fator de balanço de um nó na arvore"""
+        return (self.get_height(node.esquerda) - self.get_height(node.direita))
 
 
-    def getHeightL(self, root):
-        if not root:
-            return 0
-        return 1 + self.getHeightL(root.esquerda)
-
-
-    def getHeightR(self, root):
-        """retorna a altura """
-        if not root:
-            return 0
-        return 1 + self.getHeightR(root.direita)
-
-
-    # # Get balance factore of the node
-    # def getBalance(self, root:Node):
-    #     if not root:
-    #         return 0
-    #     return self.getHeightL(root.esquerda) - self.getHeightR(root.direita)
+    def get_height(self, node: Node):
+        """Retorna a altura de um derterminado node dentro da arvore"""
+        if not node:
+            return -1
+        return 1 + max(self.get_height(node.esquerda), self.get_height(node.direita))
 
 
     def encontrar(self, identificador) -> (bool, Node | None):
@@ -186,7 +150,7 @@ class ArvoreBinaria:
         while no is not None:
             if identificador == no.data:
                 return (True, no)
-            elif identificador < no.data:
+            if identificador < no.data:
                 no = no.esquerda
             else:
                 no = no.direita
@@ -247,7 +211,7 @@ class ArvoreBinaria:
             if y != z: # não entendi
                 z.data = y.data
 
-            y_parent.bf = (self.getHeightL(y_parent.esquerda) - self.getHeightR(y_parent.direita))
+            y_parent.bf = self.get_bf(y_parent)
 
             if y_parent.bf > 1:
                 if y_parent.esquerda.bf == 1:
@@ -306,8 +270,8 @@ class ArvoreBinaria:
         y.direita = node
 
 
-        node.height = (self.getHeightL(node.esquerda) - self.getHeightR(node.direita))
-        y.height = (self.getHeightL(y.esquerda) - self.getHeightR(y.direita))
+        node.bf = self.get_bf(node)
+        y.bf = self.get_bf(y)
 
         return y
 
@@ -333,8 +297,8 @@ class ArvoreBinaria:
             node.direita.set_parent(node)
         y.esquerda = node
 
-        node.height = (self.getHeightL(node.esquerda) - self.getHeightR(node.direita))
-        y.height = (self.getHeightL(y.esquerda) - self.getHeightR(y.direita))
+        node.bf = self.get_bf(node)
+        y.bf = self.get_bf(y)
         return y
 
 
@@ -385,20 +349,21 @@ def test():
 
 
 
-    t.inserir(Node(6)) # parece que quando esse ta aqui não faz nada
+    # t.inserir(Node(6)) # parece que quando esse ta aqui não faz nada
     # t.inserir(Node(7))
 
     # t.inserir(Node(13))
-    t.inserir(Node(20)) # mas se for esse ele faz o balanceamento certo
+    # t.inserir(Node(20)) # mas se for esse ele faz o balanceamento certo
 
 # t.inserir(Node(23))
 
 # t.inserir(Node(65))
 # t.inserir(Node(14))
 
-for i in range(0, 60):
+for i in range(0, 63):
     t.inserir(Node(i))
 
 # test()
 print("===================")
 print(t)
+print(t.get_height(t.encontrar(10)[1]))
